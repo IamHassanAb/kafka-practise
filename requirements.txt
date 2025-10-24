@@ -1,3 +1,4 @@
 confluent-kafka
 kafka-python
 streamlit==1.27.0
+plotly==5.15.0
