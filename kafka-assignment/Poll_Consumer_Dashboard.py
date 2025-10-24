@@ -52,10 +52,13 @@ def main():
     placeholder = st.empty()
     st_all_orders = st.empty()
     st_all_records = st.empty()
+    status = st.empty()
+    
+    charts = {q["Q"]: st.empty() for q in survey_questions}
 
     # Streamlit loop for live updates
     while True:
-        st.toast('Fetching')
+        status.info("📡 Fetching latest responses...")
         with lock:
             df = pd.DataFrame(records)
 
@@ -63,15 +66,34 @@ def main():
         total_response = len(df)
         placeholder.metric("Total Responses", total_response)
         # st.divider()
+        
 
         if not df.empty:
+            for ques in survey_questions:
+                qtext = ques["Q"]
+                chart_container = charts[qtext]
+                with chart_container:
+                    col1, col2 = st.columns([3, 1])
+                    col1.subheader(f"Responses for: {qtext}")
+                    value_counts = df[[qtext]].value_counts().reset_index()
+                    value_counts.columns = ["answer","count"]
+                    fig1 = px.bar(
+                        value_counts,
+                        x="answer",
+                        y="count"
+                        # title=f"Responses for: {qtext}"
+                    )
+                    col1.plotly_chart(fig1, use_container_width=True)
+                    fig2 = px.pie(value_counts,values='count',names='answer')
+                    col2.subheader(f"Data for: {qtext}")
+                    col2.plotly_chart(fig2, use_container_width=True)
             
             with st_all_records.expander("Click to Expand JSON Output"):
                 st_all_orders.dataframe(df)
                 st.write(records)
+
         #     # Display charts for each question
-            questions = [ques["Q"] for ques in survey_questions]
-            st.columns(len(questions))
+
             # for question in survey_questions:
             #     ques = question["Q"]
                 
@@ -87,7 +109,7 @@ def main():
 
 
 
-        time.sleep(2)  # refresh interval
+        time.sleep(0.5)  # refresh interval
 
 
 if __name__ == "__main__":
