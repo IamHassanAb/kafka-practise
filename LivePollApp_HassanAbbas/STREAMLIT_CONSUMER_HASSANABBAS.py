@@ -1,6 +1,6 @@
 import streamlit as st
 from kafka import KafkaConsumer
-from poll_utility import get_survey_questions
+from poll_utility import get_survey_questions, footer_html
 import threading
 import json
 import pandas as pd
@@ -37,7 +37,10 @@ def kafka_listener():
 
 
 def main():
+    st.set_page_config(page_title="Live Poll Dashboard", page_icon="📊", layout="centered")
+
     st.title("📊 Live Poll Dashboard")
+    st.caption("Real-time visualization of responses from Kafka.")
     st.divider()
 
     survey_questions = get_survey_questions()
@@ -49,30 +52,28 @@ def main():
         st.session_state.listener_started = True
         st.toast("✅ Kafka listener started in background.")
 
+    
     placeholder = st.empty()
+    charts = {q["Q"]: st.empty() for q in survey_questions}
     st_all_orders = st.empty()
     st_all_records = st.empty()
-    status = st.empty()
+    st.markdown(footer_html, unsafe_allow_html=True)
     
-    charts = {q["Q"]: st.empty() for q in survey_questions}
+    
 
     # Streamlit loop for live updates
     while True:
-        status.info("📡 Fetching latest responses...")
         with lock:
             df = pd.DataFrame(records)
 
-
-        total_response = len(df)
-        placeholder.metric("Total Responses", total_response)
-        # st.divider()
-        
-
         if not df.empty:
+            total_response = df["answer_id"].nunique()
+            placeholder.metric("Total Responses", total_response)
             for ques in survey_questions:
                 qtext = ques["Q"]
                 chart_container = charts[qtext]
                 with chart_container:
+                    # col1=barchart, col2=piechart
                     col1, col2 = st.columns([3, 1])
                     col1.subheader(f"Responses for: {qtext}")
                     value_counts = df[[qtext]].value_counts().reset_index()
@@ -81,36 +82,21 @@ def main():
                         value_counts,
                         x="answer",
                         y="count"
-                        # title=f"Responses for: {qtext}"
                     )
                     col1.plotly_chart(fig1, use_container_width=True)
                     fig2 = px.pie(value_counts,values='count',names='answer')
-                    col2.subheader(f"Data for: {qtext}")
+                    col2.subheader(f"Proportions: {qtext}")
                     col2.plotly_chart(fig2, use_container_width=True)
             
-            with st_all_records.expander("Click to Expand JSON Output"):
-                st_all_orders.dataframe(df)
-                st.write(records)
-
-        #     # Display charts for each question
-
-            # for question in survey_questions:
-            #     ques = question["Q"]
-                
-        #         options = question["A"]
-        #         fig = px.bar(
-        #             df[[ques]].value_counts().reset_index(),
-        #             x="index",
-        #             y=ques,
-        #             labels={'index':'Conference Rating',ques:'Count'},
-        #             title=f"Responses for: {ques}",
-        #         )
-        #         st.plotly_chart(fig, use_container_width=True)
+            st_all_orders.dataframe(df,use_container_width=True)
+        
 
 
 
-        time.sleep(0.5)  # refresh interval
+        time.sleep(0.5)  # refresh intervals
+    
 
 
 if __name__ == "__main__":
     main()
+    

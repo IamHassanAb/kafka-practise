@@ -10,6 +10,7 @@ def produce_order():
     p = KafkaProducer(bootstrap_servers="localhost:9092", value_serializer=lambda v: json.dumps(v).encode('utf-8'))
     p.send(topic, response)
     p.flush()
+    return response
 
 def main():
     st.title("Poll Producer Dashboard")
@@ -38,10 +39,11 @@ def main():
         for _ in range(5):  # Limit to 5 messages per rerun to avoid infinite loop in Streamlit
             if not st.session_state.sending:
                 break
-            produce_order()
+            print(produce_order())
             st.info("Poll message sent.")
+
             time.sleep(1)
-        st.experimental_rerun()
+        st.rerun()
 
 if __name__ == "__main__":
     main()
