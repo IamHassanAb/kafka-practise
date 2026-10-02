@@ -24,3 +24,6 @@ pip install -r requirements.txt
 python poll_topic_create.py
 python KAFKA_STREAMLIT_PRODUCER_HASSANABBAS.py
 streamlit run STREAMLIT_CONSUMER_HASSANABBAS.py
+```
+
+Small-scale practice project — not a production streaming setup.
