@@ -26,4 +26,10 @@ python KAFKA_STREAMLIT_PRODUCER_HASSANABBAS.py
 streamlit run STREAMLIT_CONSUMER_HASSANABBAS.py
 ```
 
+## Dashboard
+
+| KPIs | Bar charts | Raw data |
+|---|---|---|
+| ![KPI view](./LivePollApp_HassanAbbas/SS_1_KPI.png) | ![Bar charts](./LivePollApp_HassanAbbas/SS_2_BarCharts.png) | ![DataFrame](./LivePollApp_HassanAbbas/SS_3_DataFrame.png) |
+
 Small-scale practice project — not a production streaming setup.
